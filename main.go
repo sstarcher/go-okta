@@ -5,8 +5,6 @@ import (
 	"os"
 )
 
-var organization string
-
 func main() {
 	client := NewClient(os.Getenv("OKTA_ORGANIZATION"))
 	auth, err := client.authenticate(os.Getenv("OKTA_USERNAME"), os.Getenv("OKTA_PASSWORD"))
