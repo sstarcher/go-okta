@@ -34,7 +34,8 @@ func NewClient(org string) *Client {
 	}
 }
 
-func (c *Client) authenticate(username, password string) (*AuthnResponse, error) {
+// Authenticate with okta using username and password
+func (c *Client) Authenticate(username, password string) (*AuthnResponse, error) {
 	var request = &AuthnRequest{
 		Username: username,
 		Password: password,
@@ -45,7 +46,8 @@ func (c *Client) authenticate(username, password string) (*AuthnResponse, error)
 	return response, err
 }
 
-func (c *Client) session(sessionToken string) (*SessionResponse, error) {
+// Session takes a session token and always fails
+func (c *Client) Session(sessionToken string) (*SessionResponse, error) {
 	var request = &SessionRequest{
 		SessionToken: sessionToken,
 	}
