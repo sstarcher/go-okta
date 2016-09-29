@@ -13,6 +13,7 @@ import (
 type Client struct {
 	client *http.Client
 	org    string
+	url    string
 }
 
 // errorResponse is an error wrapper for the okta response
@@ -27,11 +28,19 @@ func (e *errorResponse) Error() string {
 }
 
 // NewClient object for calling okta
-func NewClient(org string) *Client {
-	return &Client{
+func NewClient(org, url string) *Client {
+	client := Client{
 		client: &http.Client{},
 		org:    org,
 	}
+
+	if url == "" {
+		client.url = "okta.com"
+	} else {
+		client.url = url
+	}
+
+	return &client
 }
 
 // Authenticate with okta using username and password
@@ -60,7 +69,7 @@ func (c *Client) Session(sessionToken string) (*SessionResponse, error) {
 func (c *Client) call(endpoint string, request, response interface{}) error {
 	data, _ := json.Marshal(request)
 
-	var url = "https://" + c.org + ".okta.com/api/v1/" + endpoint
+	var url = "https://" + c.org + "." + c.url + "/api/v1/" + endpoint
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(data))
 	if err != nil {
 		log.Fatal(err)
