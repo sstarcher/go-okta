@@ -11,9 +11,10 @@ import (
 
 // Client to access okta
 type Client struct {
-	client *http.Client
-	org    string
-	url    string
+	client   *http.Client
+	org      string
+	Url      string
+	ApiToken string
 }
 
 // errorResponse is an error wrapper for the okta response
@@ -28,16 +29,11 @@ func (e *errorResponse) Error() string {
 }
 
 // NewClient object for calling okta
-func NewClient(org, url string) *Client {
+func NewClient(org string) *Client {
 	client := Client{
 		client: &http.Client{},
 		org:    org,
-	}
-
-	if url == "" {
-		client.url = "okta.com"
-	} else {
-		client.url = url
+		Url:    "okta.com",
 	}
 
 	return &client
@@ -51,7 +47,7 @@ func (c *Client) Authenticate(username, password string) (*AuthnResponse, error)
 	}
 
 	var response = &AuthnResponse{}
-	err := c.call("authn", request, response)
+	err := c.call("authn", "POST", request, response)
 	return response, err
 }
 
@@ -62,21 +58,40 @@ func (c *Client) Session(sessionToken string) (*SessionResponse, error) {
 	}
 
 	var response = &SessionResponse{}
-	err := c.call("sessions", request, response)
+	err := c.call("sessions", "POST", request, response)
 	return response, err
 }
 
-func (c *Client) call(endpoint string, request, response interface{}) error {
+// User takes a user id and returns data about that user
+func (c *Client) User(userID string) (*User, error) {
+
+	var response = &User{}
+	err := c.call("users/"+userID, "GET", nil, response)
+	return response, err
+}
+
+// Groups takes a user id and returns the groups the user belongs to
+func (c *Client) Groups(userID string) (*Groups, error) {
+
+	var response = &Groups{}
+	err := c.call("users/"+userID+"/groups", "GET", nil, response)
+	return response, err
+}
+
+func (c *Client) call(endpoint, method string, request, response interface{}) error {
 	data, _ := json.Marshal(request)
 
-	var url = "https://" + c.org + "." + c.url + "/api/v1/" + endpoint
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(data))
+	var url = "https://" + c.org + "." + c.Url + "/api/v1/" + endpoint
+	req, err := http.NewRequest(method, url, bytes.NewBuffer(data))
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	req.Header.Add("Accept", `application/json`)
 	req.Header.Add("Content-Type", `application/json`)
+	if c.ApiToken != "" {
+		req.Header.Add("Authorization", "SSWS "+c.ApiToken)
+	}
 
 	resp, err := c.client.Do(req)
 	if err != nil {
