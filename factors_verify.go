@@ -3,12 +3,17 @@ package okta
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"io/ioutil"
 	"net/http"
 )
 
 // https://developer.okta.com/docs/api/resources/authn.html#verify-totp-factor
 func (r *AuthnResponse) VerifyOTP(code string, verifyResp *AuthnResponse) (err error) {
+	if len(r.Embedded.Factors) == 0 {
+		return errors.New("no factors available to verify")
+	}
+
 	data, _ := json.Marshal(map[string]string{
 		"passCode":   code,
 		"stateToken": r.StateToken,
