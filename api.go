@@ -10,10 +10,11 @@ import (
 
 // Client to access okta
 type Client struct {
-	client   *http.Client
-	org      string
-	Url      string
-	ApiToken string
+	client        *http.Client
+	org           string
+	Url           string
+	ApiToken      string
+	SessionCookie *http.Cookie
 }
 
 // errorResponse is an error wrapper for the okta response
@@ -50,7 +51,8 @@ func (c *Client) Authenticate(username, password string) (*AuthnResponse, error)
 	return response, err
 }
 
-// Session takes a session token and always fails
+// Session takes a session token and returns a session, the ID is stored
+// as a cookie so it can be consumed by this library and its clients.
 func (c *Client) Session(sessionToken string) (*SessionResponse, error) {
 	var request = &SessionRequest{
 		SessionToken: sessionToken,
@@ -58,6 +60,16 @@ func (c *Client) Session(sessionToken string) (*SessionResponse, error) {
 
 	var response = &SessionResponse{}
 	err := c.call("sessions", "POST", request, response)
+	if err == nil {
+		c.SessionCookie = &http.Cookie{
+			Name:     "sid",
+			Value:    response.ID,
+			Path:     "/",
+			Domain:   c.org + "." + c.Url,
+			Secure:   true,
+			HttpOnly: true,
+		}
+	}
 	return response, err
 }
 
@@ -90,6 +102,9 @@ func (c *Client) call(endpoint, method string, request, response interface{}) er
 	req.Header.Add("Content-Type", `application/json`)
 	if c.ApiToken != "" {
 		req.Header.Add("Authorization", "SSWS "+c.ApiToken)
+	}
+	if c.SessionCookie != nil {
+		req.Header.Add("Cookie", c.SessionCookie.String())
 	}
 
 	resp, err := c.client.Do(req)
