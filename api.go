@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 )
 
 // Client to access okta
@@ -86,6 +87,20 @@ func (c *Client) Groups(userID string) (*Groups, error) {
 
 	var response = &Groups{}
 	err := c.call("users/"+userID+"/groups", "GET", nil, response)
+	return response, err
+}
+
+func (c *Client) AppLinks(userID string, appName string) (*AppLinks, error) {
+	u := "users/" + userID + "/appLinks"
+
+	if len(appName) > 0 {
+		v := &url.Values{}
+		v.Add("filter", fmt.Sprintf(`appName eq "%s"`, appName))
+		u += "?" + v.Encode()
+	}
+
+	var response = &AppLinks{}
+	err := c.call(u, "GET", nil, response)
 	return response, err
 }
 
