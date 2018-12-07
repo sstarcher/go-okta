@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
 )
 
 type Factor struct {
@@ -31,7 +32,7 @@ func (r *AuthnResponse) GetSupportedFactors() []Factor {
 
 	for _, v := range r.Embedded.Factors {
 		postAllowed := false
-		if v.FactorType == "token:software:totp" {
+		if strings.HasPrefix(v.FactorType, "token") {
 			for _, verb := range v.Links.Verify.Hints.Allow {
 				if verb == "POST" {
 					postAllowed = true
@@ -49,7 +50,7 @@ func (r *AuthnResponse) GetSupportedFactors() []Factor {
 
 // https://developer.okta.com/docs/api/resources/factors#verify-totp-factor
 func (f Factor) VerifyOTP(stateToken string, code string) (*AuthnResponse, error) {
-	if f.FactorType != "token:software:totp" {
+	if !strings.HasPrefix(f.FactorType, "token") {
 		return nil, fmt.Errorf(
 			"can not VerifyOTP on a factor type of %s", f.FactorType)
 	}
