@@ -42,24 +42,8 @@ type AuthnResponse struct {
 				TimeZone  string `json:"timeZone"`
 			} `json:"profile"`
 		} `json:"user"`
-		Factors []struct {
-			ID         string `json:"id"`
-			FactorType string `json:"factorType"`
-			Provider   string `json:"provider"`
-			VendorName string `json:"vendorName"`
-			Profile    struct {
-				CredentialID string `json:"credentialId"`
-			} `json:"profile"`
-			Links struct {
-				Verify struct {
-					Href  string `json:"href"`
-					Hints struct {
-						Allow []string `json:"allow"`
-					} `json:"hints"`
-				} `json:"verify"`
-			} `json:"_links"`
-		} `json:"factors"`
-		Policy struct {
+		Factors []Factor `json:"factors"`
+		Policy  struct {
 			AllowRememberDevice             bool `json:"allowRememberDevice"`
 			RememberDeviceLifetimeInMinutes int  `json:"rememberDeviceLifetimeInMinutes"`
 			RememberDeviceByDefault         bool `json:"rememberDeviceByDefault"`
