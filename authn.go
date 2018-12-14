@@ -29,6 +29,7 @@ type AuthnResponse struct {
 	ExpiresAt    time.Time `json:"expiresAt"`
 	Status       string    `json:"status"`
 	RelayState   string    `json:"relayState"`
+	FactorResult string    `json:"factorResult"`
 	SessionToken string    `json:"sessionToken"`
 	Embedded     struct {
 		User struct {
@@ -56,5 +57,12 @@ type AuthnResponse struct {
 				Allow []string `json:"allow"`
 			} `json:"hints"`
 		} `json:"cancel"`
+		Next struct {
+			Name  string `json:"name"`
+			Href  string `json:"href"`
+			Hints struct {
+				Allow []string `json:"allow"`
+			} `json:"hints"`
+		}
 	} `json:"_links"`
 }
